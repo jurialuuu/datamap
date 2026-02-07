@@ -5,6 +5,7 @@ export const MODULES: ModuleData[] = [
   {
     id: 0,
     title: "Real Business Problem",
+    iconName: "AlertCircle",
     purpose: "Translate 'vague stress' into a specific, testable business question.",
     whatYouDo: [
       "Write down the primary complaint (e.g., 'Sales are low').",
@@ -18,11 +19,12 @@ export const MODULES: ModuleData[] = [
       outputs: ["Testable Hypothesis", "Priority Score Card"]
     },
     example: "'ROAS is down' becomes 'Did the price increase on SKU-A lead to a significant drop in Checkout-to-Purchase conversion?'",
-    nextStepLabel: "Map the Metrics"
+    nextStepLabel: "Go to Metric Map"
   },
   {
     id: 1,
     title: "Metric Map",
+    iconName: "Network",
     purpose: "Understand the mathematical relationship between metrics to find the lever.",
     whatYouDo: [
       "Start with GMV and break it into: Traffic x Conversion x AOV.",
@@ -36,13 +38,14 @@ export const MODULES: ModuleData[] = [
       outputs: ["Metric Hierarchy Map", "Baseline Performance Index"]
     },
     example: "If AOV is flat and Conversion is stable, but ROAS is down, the issue MUST be Traffic Cost (CPC/CPM).",
-    nextStepLabel: "Select Analysis Path"
+    nextStepLabel: "Go to Path Selector"
   },
   {
     id: 2,
     title: "Analysis Path Selector",
+    iconName: "Route",
     purpose: "Choose the right thinking scaffold to solve the specific business problem.",
-    whatYouDo: [
+     whatYouDo: [
       "Determine if the issue is a Funnel leak, a Cohort shift, or an Experiment failure.",
       "Map the business problem to specific technical steps (SQL/Spreadsheets).",
       "Identify the 'Decision Memo' format needed for stakeholders.",
@@ -59,6 +62,7 @@ export const MODULES: ModuleData[] = [
   {
     id: 3,
     title: "Analysis Library",
+    iconName: "Database",
     purpose: "Technical execution: calculating the numbers to see the truth.",
     whatYouDo: [
       "Clean raw data by removing duplicates or internal test orders.",
@@ -72,11 +76,12 @@ export const MODULES: ModuleData[] = [
       outputs: ["Cleaned Data Set", "Visual Charts & Pivot Tables"]
     },
     example: "Segmenting CVR by browser reveals that Safari users are failing at checkout due to a tech bug.",
-    nextStepLabel: "Translate to Tools"
+    nextStepLabel: "Go to Tool Translation"
   },
   {
     id: 4,
     title: "Tool Translation",
+    iconName: "Terminal",
     purpose: "Map the logic to specific software workflows for ongoing monitoring.",
     whatYouDo: [
       "Write the SQL query to pull this data automatically next time.",
@@ -90,11 +95,12 @@ export const MODULES: ModuleData[] = [
       outputs: ["SQL Code Snippets", "Dashboard Templates", "Automated Alerts"]
     },
     example: "A complex cohort calculation in Module 3 is turned into a `SELECT DATE_TRUNC` query for a weekly auto-report.",
-    nextStepLabel: "Decision & Impact"
+    nextStepLabel: "Go to Decision & Impact"
   },
   {
     id: 5,
     title: "Decision & Impact",
+    iconName: "Rocket",
     purpose: "Communicate findings and trigger a specific business action.",
     whatYouDo: [
       "Write the 'TL;DR' summary - what happened and why it matters.",
@@ -108,7 +114,7 @@ export const MODULES: ModuleData[] = [
       outputs: ["Decision Memo", "Stakeholder Email", "Budget Reallocation Plan"]
     },
     example: "Instead of saying 'Ads are bad', say 'Cutting $5k from Audience A and moving it to Audience B will likely increase ROI by 0.5x based on the last 14 days.'",
-    nextStepLabel: "Complete Learning Path"
+    nextStepLabel: "Complete Journey"
   }
 ];
 
@@ -116,6 +122,7 @@ export const PROBLEMS: BusinessProblem[] = [
   {
     id: "roi_dropped",
     label: "ROI dropped",
+    iconName: "TrendingDown",
     description: "Your return on spend is suddenly below target.",
     suggestedModules: [0, 1, 3],
     metricsToWatch: ["ROAS", "CPC", "CR", "CPM"],
@@ -131,6 +138,7 @@ export const PROBLEMS: BusinessProblem[] = [
   {
     id: "cvr_dropped",
     label: "Conversion Rate dropped",
+    iconName: "MousePointerClick",
     description: "CVR is down despite steady traffic.",
     suggestedModules: [1, 3, 4],
     metricsToWatch: ["CR", "ATC Rate", "Checkout Start Rate"],
@@ -146,6 +154,7 @@ export const PROBLEMS: BusinessProblem[] = [
   {
     id: "cac_high",
     label: "CAC too high",
+    iconName: "UserPlus",
     description: "Acquisition cost is exceeding first-purchase margin.",
     suggestedModules: [3, 5],
     metricsToWatch: ["CAC", "CPM", "CTR", "1st Purchase Margin"],
@@ -161,6 +170,7 @@ export const PROBLEMS: BusinessProblem[] = [
   {
     id: "aov_low",
     label: "AOV too low",
+    iconName: "ShoppingBag",
     description: "Basket sizes are shrinking.",
     suggestedModules: [1, 3],
     metricsToWatch: ["AOV", "UPT", "Discount Rate"],
@@ -176,6 +186,7 @@ export const PROBLEMS: BusinessProblem[] = [
   {
     id: "retention_low",
     label: "Retention low",
+    iconName: "UserCheck",
     description: "One-and-done customers are becoming the norm.",
     suggestedModules: [3, 4, 5],
     metricsToWatch: ["Retention Rate", "CLV", "Repeat Ratio"],
@@ -186,6 +197,22 @@ export const PROBLEMS: BusinessProblem[] = [
       3: { title: "Cohort Analysis", advice: "Compare repeat rates between 'Discount' customers and 'Full Price' customers.", action: "Calculate LTV by Discount Code." },
       4: { title: "CRM Setup", advice: "Build an automated Klaviyo segment for customers who haven't returned after 45 days.", action: "Automate 'Win-back' triggers." },
       5: { title: "Strategic Move", advice: "Move 20% of acquisition budget to retention ads targeting high-intent lapsed users.", action: "Draft a 'Retention-First' growth plan." }
+    }
+  },
+  {
+    id: "promo_unclear",
+    label: "Big promo results unclear",
+    iconName: "Percent",
+    description: "A major sale ended, but it's hard to tell if it actually drove incremental profit.",
+    suggestedModules: [0, 3, 5],
+    metricsToWatch: ["GMV", "Contribution Margin", "Discount Rate", "Incremental Lift"],
+    blueprints: {
+      0: { title: "Incrementality Frame", advice: "The core question isn't 'how much did we sell', but 'how much more did we sell vs a normal week'.", action: "Identify the 14-day 'Control Period' before the promo started." },
+      1: { title: "Margin Sensitivity", advice: "Map the discount depth to the volume increase. Did a 20% discount drive >25% volume lift?", action: "Calculate 'Break-even Volume Lift' required for the discount." },
+      2: { title: "Pre-Post Path", advice: "Choose the 'Pre-Post Incrementality' scaffold. This compares time-series behavior.", action: "Establish a baseline daily GMV average." },
+      3: { title: "Halo Execution", advice: "Analyze 'Halo Effects'—did the promo on SKU-A lead to full-price sales of SKU-B?", action: "Calculate 'Attached Revenue' for promo items." },
+      4: { title: "Promo Dashboard", advice: "Build a real-time 'Discount vs Margin' tracker in Looker for future sales.", action: "Automate daily Contribution Margin reporting during sale events." },
+      5: { title: "Post-Mortem", advice: "Decide if the 'Customer Acquisition' quality was worth the 'Margin Compression'.", action: "Draft a 'Promo ROI Summary' recommending 15% vs 20% depth for the next event." }
     }
   }
 ];

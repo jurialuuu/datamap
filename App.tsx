@@ -18,29 +18,24 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AppTab>(AppTab.Map);
   const [selectedModuleId, setSelectedModuleId] = useState<ModuleId | null>(null);
   const [selectedProblemId, setSelectedProblemId] = useState<string | null>(null);
-  const [moduleStatuses, setModuleStatuses] = useState<Record<ModuleId, ModuleStatus>>(() => {
-    return {
-      0: 'to-learn',
-      1: 'to-learn',
-      2: 'to-learn',
-      3: 'to-learn',
-      4: 'to-learn',
-      5: 'to-learn'
-    };
-  });
+  
+  // Per-problem module statuses: Record<problemId, Record<ModuleId, ModuleStatus>>
+  const [allStatuses, setAllStatuses] = useState<Record<string, Record<ModuleId, ModuleStatus>>>(() => ({}));
 
   // Load persistence
   useEffect(() => {
-    const savedStatuses = localStorage.getItem('oa_module_statuses');
+    const savedAllStatuses = localStorage.getItem('oa_all_statuses');
     const savedProblem = localStorage.getItem('oa_selected_problem');
-    if (savedStatuses) setModuleStatuses(JSON.parse(savedStatuses));
+    if (savedAllStatuses) setAllStatuses(JSON.parse(savedAllStatuses));
     if (savedProblem) setSelectedProblemId(savedProblem);
   }, []);
 
   // Save persistence
   useEffect(() => {
-    localStorage.setItem('oa_module_statuses', JSON.stringify(moduleStatuses));
-  }, [moduleStatuses]);
+    if (Object.keys(allStatuses).length > 0) {
+      localStorage.setItem('oa_all_statuses', JSON.stringify(allStatuses));
+    }
+  }, [allStatuses]);
 
   useEffect(() => {
     if (selectedProblemId) {
@@ -48,8 +43,31 @@ const App: React.FC = () => {
     }
   }, [selectedProblemId]);
 
+  const currentProblemId = selectedProblemId || 'general';
+
+  const currentModuleStatuses = useMemo(() => {
+    const statuses = allStatuses[currentProblemId];
+    if (statuses) return statuses;
+    
+    // Default initial state for a new problem context
+    return {
+      0: 'to-learn',
+      1: 'to-learn',
+      2: 'to-learn',
+      3: 'to-learn',
+      4: 'to-learn',
+      5: 'to-learn'
+    } as Record<ModuleId, ModuleStatus>;
+  }, [allStatuses, currentProblemId]);
+
   const updateModuleStatus = (id: ModuleId, status: ModuleStatus) => {
-    setModuleStatuses(prev => ({ ...prev, [id]: status }));
+    setAllStatuses(prev => ({
+      ...prev,
+      [currentProblemId]: {
+        ...currentModuleStatuses,
+        [id]: status
+      }
+    }));
   };
 
   const currentProblem = useMemo(() => 
@@ -57,18 +75,17 @@ const App: React.FC = () => {
     [selectedProblemId]
   );
 
-  // Progress is % of modules that are not 'to-learn'
+  // Progress is % of modules in the current path that are not 'to-learn'
   const progress = useMemo(() => {
-    const nonPending = Object.values(moduleStatuses).filter(s => s !== 'to-learn').length;
+    const nonPending = Object.values(currentModuleStatuses).filter(s => s !== 'to-learn').length;
     return (nonPending / MODULES.length) * 100;
-  }, [moduleStatuses]);
+  }, [currentModuleStatuses]);
 
   const renderContent = () => {
     switch (activeTab) {
       case AppTab.Map:
         return (
           <div className="flex flex-col lg:flex-row h-full w-full overflow-hidden">
-            {/* Sidebar with constrained height on mobile to ensure map visibility */}
             <div className="w-full lg:w-96 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-stone-200 bg-white p-6 flex flex-col gap-6 overflow-y-auto z-10 max-h-[40vh] lg:max-h-full">
               <ProblemPicker 
                 selectedProblemId={selectedProblemId} 
@@ -78,17 +95,16 @@ const App: React.FC = () => {
               <div className="mt-auto p-6 bg-stone-50 rounded-2xl border border-stone-200 border-dashed">
                 <p className="text-[11px] text-stone-500 italic font-medium leading-relaxed">
                   {currentProblem 
-                    ? `Current Path: "${currentProblem.label}". Your thinking blueprint is now available in Module 2.` 
-                    : "Selection Needed: Choose a problem above to unlock a custom analysis scaffold across the map modules."}
+                    ? `Current Path: "${currentProblem.label}". Your thinking blueprint is now active across all modules. View Module 2 (Analysis Path Selector) for the core scaffold.` 
+                    : "Selection Needed: Choose a problem above to unlock a custom analysis journey across the map."}
                 </p>
               </div>
             </div>
             
-            {/* Map container - Takes remaining space and is strictly scrollable */}
             <div className="flex-1 relative bg-stone-50 overflow-hidden">
               <LearningMap 
                 modules={MODULES}
-                moduleStatuses={moduleStatuses}
+                moduleStatuses={currentModuleStatuses}
                 selectedModuleId={selectedModuleId}
                 onSelectModule={setSelectedModuleId}
                 highlightedModules={currentProblem?.suggestedModules || []}
@@ -122,7 +138,7 @@ const App: React.FC = () => {
 
               <h2 className="text-2xl font-black text-stone-900 mt-16 mb-6">Mastery Journey</h2>
               <p className="text-stone-600 leading-relaxed mb-8">
-                This tool is designed to move you from left to right. By selecting a business problem, you see how an analyst decomposes stress into steps, tools, and decisions. Use the "Mark as understood" flags to track your transition into a data-driven leader.
+                This tool is designed to move you from left to right. By selecting a business problem, you see how an analyst decomposes stress into steps, tools, and decisions. Each path tracks progress separately, ensuring you master the specific nuance of every scenario.
               </p>
             </div>
           </div>
@@ -143,7 +159,7 @@ const App: React.FC = () => {
       {selectedModuleId !== null && (
         <ModuleDrawer 
           module={MODULES.find(m => m.id === selectedModuleId)!}
-          status={moduleStatuses[selectedModuleId]}
+          status={currentModuleStatuses[selectedModuleId]}
           onClose={() => setSelectedModuleId(null)}
           onUpdateStatus={(status) => updateModuleStatus(selectedModuleId, status)}
           currentProblem={currentProblem}

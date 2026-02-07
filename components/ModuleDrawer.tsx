@@ -1,8 +1,22 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, CheckCircle, ArrowRight, Database, TrendingUp, Lightbulb, MessageCircle, Send, Loader2, RefreshCw, Circle, ClipboardList, BookOpen, ChevronRight, Target, LayoutDashboard } from 'lucide-react';
+import { 
+  X, CheckCircle, ArrowRight, Database, TrendingUp, Lightbulb, 
+  MessageCircle, Send, Loader2, RefreshCw, Circle, ClipboardList, 
+  BookOpen, Target, AlertCircle, Network, Route, Terminal, Rocket 
+} from 'lucide-react';
 import { ModuleData, ModuleStatus, BusinessProblem } from '../types';
 import { GoogleGenAI } from '@google/genai';
+import Term from './Term';
+
+const ICON_MAP: Record<string, any> = {
+  AlertCircle,
+  Network,
+  Route,
+  Database,
+  Terminal,
+  Rocket
+};
 
 interface Message {
   role: 'user' | 'assistant';
@@ -20,11 +34,17 @@ interface ModuleDrawerProps {
   currentProblem: BusinessProblem | null;
 }
 
+const formatChatContent = (text: string) => {
+  // Simple regex to clean common markdown artifacts that clutter the UI
+  // Removes double asterisks for bolding but keeps text, etc.
+  return text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/#{1,6}\s?(.*)/g, '$1');
+};
+
 const ModuleDrawer: React.FC<ModuleDrawerProps> = ({ 
   module, 
   status,
   onClose, 
-  onUpdateStatus,
+  onUpdateStatus, 
   onNext,
   currentProblem
 }) => {
@@ -33,6 +53,8 @@ const ModuleDrawer: React.FC<ModuleDrawerProps> = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const ModuleIcon = ICON_MAP[module.iconName] || BookOpen;
 
   // Default to Blueprint if a problem is selected
   useEffect(() => {
@@ -79,7 +101,7 @@ const ModuleDrawer: React.FC<ModuleDrawerProps> = ({
           }
         ],
         config: {
-          systemInstruction: "You are an elite E-commerce Data Analyst. Be extremely concise, punchy, and prioritize decisions over just data. Focus on profit levers like CAC, LTV, ROAS, and AOV."
+          systemInstruction: "You are an elite E-commerce Data Analyst. Be helpful, concise, and prioritize decisions over just data. DO NOT use markdown symbols like double asterisks (**) for bolding or hashtags (#) for headers. Use plain text with clear spacing and capital headers for structure."
         }
       });
 
@@ -130,7 +152,7 @@ const ModuleDrawer: React.FC<ModuleDrawerProps> = ({
             {module.inputsOutputs.inputs.map(input => (
               <li key={input} className="text-xs font-black text-stone-600 flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-stone-200 rounded-full" />
-                {input}
+                <Term name={input} />
               </li>
             ))}
           </ul>
@@ -143,7 +165,7 @@ const ModuleDrawer: React.FC<ModuleDrawerProps> = ({
             {module.inputsOutputs.outputs.map(output => (
               <li key={output} className="text-xs font-black text-indigo-600 flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-indigo-200 rounded-full" />
-                {output}
+                <Term name={output} />
               </li>
             ))}
           </ul>
@@ -208,7 +230,9 @@ const ModuleDrawer: React.FC<ModuleDrawerProps> = ({
           <div className="grid grid-cols-2 gap-4">
             {currentProblem.metricsToWatch.map(m => (
               <div key={m} className="p-4 bg-stone-50 rounded-2xl border border-stone-100 flex items-center justify-between">
-                <span className="text-xs font-black text-stone-700">{m}</span>
+                <span className="text-xs font-black text-stone-700">
+                  <Term name={m} />
+                </span>
                 <TrendingUp size={14} className="text-stone-300" />
               </div>
             ))}
@@ -237,46 +261,57 @@ const ModuleDrawer: React.FC<ModuleDrawerProps> = ({
 
   const renderChat = () => (
     <div className="flex flex-col h-full bg-stone-50 animate-in fade-in duration-300">
-      <div ref={scrollRef} className="flex-1 p-8 space-y-6 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 p-8 space-y-8 overflow-y-auto scroll-smooth">
         {messages.map((m, i) => (
           <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-            <div className={`max-w-[85%] p-5 rounded-[1.5rem] text-xs leading-relaxed shadow-sm transition-all duration-300 ${
+             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 mb-2 px-1">
+                {m.role === 'user' ? 'Operator' : 'Expert Analyst'}
+             </span>
+            <div className={`max-w-[90%] p-5 rounded-[1.75rem] text-[14px] leading-relaxed shadow-sm transition-all duration-300 whitespace-pre-wrap ${
               m.role === 'user' 
-                ? 'bg-indigo-600 text-white rounded-tr-none' 
+                ? 'bg-indigo-600 text-white rounded-tr-none shadow-indigo-100' 
                 : 'bg-white border border-stone-200 text-stone-800 rounded-tl-none font-medium'
             }`}>
-              {m.content}
+              {formatChatContent(m.content)}
             </div>
           </div>
         ))}
         {isLoading && (
-          <div className="flex items-start">
-            <div className="bg-white border border-stone-200 p-4 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-3">
-              <Loader2 size={16} className="animate-spin text-indigo-500" />
-              <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Processing...</span>
+          <div className="flex flex-col items-start">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 mb-2 px-1">Expert Analyst</span>
+            <div className="bg-white border border-stone-200 p-5 rounded-[1.75rem] rounded-tl-none shadow-sm flex items-center gap-4">
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" />
+              </div>
+              <span className="text-[11px] font-black text-stone-400 uppercase tracking-widest">Synthesizing Data...</span>
             </div>
           </div>
         )}
       </div>
 
-      <div className="p-6 bg-white border-t border-stone-100">
-        <div className="relative">
+      <div className="p-8 bg-white border-t border-stone-100 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+        <div className="relative group">
           <input 
             type="text" 
             value={chatInput}
             onChange={(e) => setChatInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             placeholder="Ask a technical analyst question..."
-            className="w-full pl-5 pr-14 py-5 bg-stone-100 border border-stone-200 rounded-[1.5rem] text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-medium"
+            className="w-full pl-6 pr-16 py-6 bg-stone-100 border border-stone-200 rounded-[1.75rem] text-[15px] focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-200 transition-all font-medium placeholder:text-stone-400"
           />
           <button 
             onClick={handleSendMessage}
             disabled={isLoading || !chatInput.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-indigo-600 text-white rounded-2xl disabled:bg-stone-200 transition-all shadow-lg hover:bg-indigo-700"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 p-4 bg-indigo-600 text-white rounded-[1.25rem] disabled:bg-stone-200 disabled:shadow-none transition-all shadow-xl hover:bg-indigo-700 active:scale-95"
           >
             <Send size={20} />
           </button>
         </div>
+        <p className="mt-3 text-center text-[10px] text-stone-400 font-bold uppercase tracking-widest">
+          Analyst mode active. Ask about logic, formulas, or decision criteria.
+        </p>
       </div>
     </div>
   );
@@ -290,7 +325,9 @@ const ModuleDrawer: React.FC<ModuleDrawerProps> = ({
         {/* Header */}
         <div className="bg-white z-20 p-8 flex items-center justify-between border-b border-stone-100 flex-shrink-0">
           <div className="flex items-center gap-5">
-            <span className="text-6xl font-black text-indigo-50/80 leading-none">0{module.id}</span>
+            <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center shadow-inner ring-1 ring-indigo-100">
+               <ModuleIcon size={32} />
+            </div>
             <div className="flex flex-col">
               <h2 className="text-2xl font-black text-stone-900 tracking-tight leading-none mb-1">{module.title}</h2>
               <p className="text-[11px] text-stone-400 font-bold uppercase tracking-[0.2em]">

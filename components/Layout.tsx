@@ -52,7 +52,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, prog
 
         <div className="flex items-center gap-5">
           <div className="hidden sm:flex flex-col items-end gap-1">
-            <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">Mastery Level</span>
+            <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">Path Progress</span>
             <div className="w-32 h-2 bg-stone-100 rounded-full overflow-hidden border border-stone-200/50">
               <div 
                 className={`h-full transition-all duration-1000 ease-out ${

@@ -1,7 +1,25 @@
 
 import React from 'react';
-import { TrendingDown, AlertCircle, Target, Info } from 'lucide-react';
+import { 
+  TrendingDown, 
+  Target, 
+  Info, 
+  MousePointerClick, 
+  UserPlus, 
+  ShoppingBag, 
+  UserCheck, 
+  Percent 
+} from 'lucide-react';
 import { PROBLEMS } from '../constants';
+
+const ICON_MAP: Record<string, any> = {
+  TrendingDown,
+  MousePointerClick,
+  UserPlus,
+  ShoppingBag,
+  UserCheck,
+  Percent
+};
 
 interface ProblemPickerProps {
   selectedProblemId: string | null;
@@ -9,6 +27,8 @@ interface ProblemPickerProps {
 }
 
 const ProblemPicker: React.FC<ProblemPickerProps> = ({ selectedProblemId, onSelectProblem }) => {
+  const currentProblem = PROBLEMS.find(p => p.id === selectedProblemId);
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -29,6 +49,8 @@ const ProblemPicker: React.FC<ProblemPickerProps> = ({ selectedProblemId, onSele
       <div className="space-y-3">
         {PROBLEMS.map((problem) => {
           const isActive = selectedProblemId === problem.id;
+          const ScenarioIcon = ICON_MAP[problem.iconName] || TrendingDown;
+          
           return (
             <button
               key={problem.id}
@@ -40,7 +62,7 @@ const ProblemPicker: React.FC<ProblemPickerProps> = ({ selectedProblemId, onSele
               }`}
             >
               <div className={`mt-0.5 p-2.5 rounded-xl transition-colors ${isActive ? 'bg-indigo-600 text-white shadow-lg' : 'bg-stone-50 text-stone-400 group-hover:bg-indigo-50 group-hover:text-indigo-500'}`}>
-                <TrendingDown size={20} />
+                <ScenarioIcon size={20} />
               </div>
               
               <div className="flex-1">
@@ -52,9 +74,12 @@ const ProblemPicker: React.FC<ProblemPickerProps> = ({ selectedProblemId, onSele
                 </p>
                 
                 {isActive && (
-                  <div className="mt-3 pt-3 border-t border-indigo-50 flex items-center gap-2">
-                    <Target size={12} className="text-indigo-600" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600">Active Blueprint Enabled</span>
+                  <div className="mt-3 pt-3 border-t border-indigo-50 flex flex-wrap gap-2">
+                    {problem.metricsToWatch.map(m => (
+                      <span key={m} className="text-[8px] font-black uppercase tracking-tighter bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">
+                        {m}
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>
@@ -69,7 +94,7 @@ const ProblemPicker: React.FC<ProblemPickerProps> = ({ selectedProblemId, onSele
             <Target size={12} /> Blueprint Ready
           </h5>
           <p className="text-[11px] text-indigo-900 font-bold leading-tight">
-            Select any module on the map to see how to solve <span className="underline decoration-indigo-300">{PROBLEMS.find(p => p.id === selectedProblemId)?.label}</span> using those principles.
+            Select any module on the map to see how to solve <span className="underline decoration-indigo-300">{currentProblem?.label}</span> using those principles.
           </p>
           <div className="flex items-center gap-1.5 text-indigo-400">
             <div className="w-1.5 h-1.5 rounded-full bg-indigo-300 animate-pulse" />

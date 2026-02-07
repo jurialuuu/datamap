@@ -1,7 +1,18 @@
 
 import React from 'react';
 import { ModuleData, ModuleId, ModuleStatus } from '../types';
-import { CheckCircle, Circle, MapPin, RefreshCw, Info } from 'lucide-react';
+import { 
+  CheckCircle, 
+  Circle, 
+  MapPin, 
+  RefreshCw, 
+  AlertCircle, 
+  Network, 
+  Route, 
+  Database, 
+  Terminal, 
+  Rocket 
+} from 'lucide-react';
 
 interface LearningMapProps {
   modules: ModuleData[];
@@ -10,6 +21,15 @@ interface LearningMapProps {
   onSelectModule: (id: ModuleId) => void;
   highlightedModules: ModuleId[];
 }
+
+const ICON_MAP: Record<string, any> = {
+  AlertCircle,
+  Network,
+  Route,
+  Database,
+  Terminal,
+  Rocket
+};
 
 const LearningMap: React.FC<LearningMapProps> = ({ 
   modules, 
@@ -47,16 +67,17 @@ const LearningMap: React.FC<LearningMapProps> = ({
           
           let displayStatusLabel = "To Learn";
           let nodeBg = "bg-white text-stone-300";
-          let Icon = Circle;
+          let StatusIcon = Circle;
+          const ModuleIcon = ICON_MAP[module.iconName] || Circle;
 
           if (status === 'mastered') {
             displayStatusLabel = "Mastered";
             nodeBg = "bg-green-500 text-white shadow-green-200/50";
-            Icon = CheckCircle;
+            StatusIcon = CheckCircle;
           } else if (status === 'needs-review') {
-            displayStatusLabel = "Reviewing";
+            displayStatusLabel = "Review";
             nodeBg = "bg-orange-400 text-white shadow-orange-200/50";
-            Icon = RefreshCw;
+            StatusIcon = RefreshCw;
           }
 
           if (isSelected) {
@@ -81,10 +102,15 @@ const LearningMap: React.FC<LearningMapProps> = ({
               <div className={`
                 w-28 h-28 rounded-[3rem] flex items-center justify-center transition-all duration-500 shadow-xl relative
                 ${nodeBg}
-                ${isHighlighted ? 'ring-4 ring-indigo-500 ring-offset-4 ring-opacity-100 shadow-indigo-300' : 'ring-1 ring-stone-200'}
+                ${isHighlighted && status === 'to-learn' ? 'ring-4 ring-indigo-500 ring-offset-4 ring-opacity-100 shadow-indigo-300' : 'ring-1 ring-stone-200'}
               `}>
-                <Icon size={48} strokeWidth={status === 'to-learn' ? 1.5 : 2.5} className={status === 'needs-review' ? 'animate-spin-slow' : ''} />
+                <ModuleIcon size={40} strokeWidth={status === 'to-learn' ? 1.5 : 2.5} className={status === 'needs-review' ? 'animate-pulse' : ''} />
                 
+                {/* Status Indicator */}
+                <div className="absolute bottom-1 right-1">
+                  <StatusIcon size={20} className={status === 'mastered' ? 'text-white' : 'text-stone-200'} fill={status === 'mastered' ? 'rgba(255,255,255,0.2)' : 'transparent'} />
+                </div>
+
                 {/* Active Path Pin */}
                 {isHighlighted && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-600 text-white p-2 rounded-full shadow-lg border-2 border-white animate-bounce z-20 group/pin">
@@ -118,7 +144,7 @@ const LearningMap: React.FC<LearningMapProps> = ({
                   isHighlighted ? 'bg-indigo-600 border-indigo-600 text-white scale-105 shadow-indigo-100' :
                   'bg-white border-stone-200 text-stone-400'}
               `}>
-                {status === 'mastered' ? "Mastered" : isHighlighted ? "Active Path" : status === 'needs-review' ? "Review" : "To Learn"}
+                {status === 'mastered' ? "Mastered" : status === 'needs-review' ? "Review" : isHighlighted ? "Active Path" : "To Learn"}
               </div>
             </div>
           );
